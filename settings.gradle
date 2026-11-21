@@ -1,0 +1,6 @@
+rootProject.name = 'restaurant-self-ordering-system'
+
+include 'shared'
+include 'server'
+include 'client-customer'
+include 'client-kitchen'

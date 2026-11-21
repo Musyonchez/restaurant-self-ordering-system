@@ -1,0 +1,25 @@
+// Root build file. Shared configuration for every subproject lives here so each
+// subproject's own build.gradle only needs to declare what makes it different.
+subprojects {
+    apply plugin: 'java'
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+
+    // Source files use literal Unicode glyphs (icons in the customer UI),
+    // so compile with UTF-8 explicitly rather than relying on the
+    // platform default encoding, which is not UTF-8 on Windows.
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+}

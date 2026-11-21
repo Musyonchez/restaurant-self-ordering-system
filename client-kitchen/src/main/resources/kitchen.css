@@ -1,0 +1,388 @@
+/* Styling for the kitchen status board. Driven by mouse/keyboard like a
+   normal desktop app, so touch-target sizing matters less here than on the
+   customer tablet, but clear status color-coding at a glance matters a lot
+   since staff will be scanning this board quickly during a busy service.
+
+   Visual language: dark, high-contrast "expo screen" look (the standard
+   pattern for commercial kitchen display systems), one accent color per
+   order status (blue/amber/green/slate), and a separate yellow/red aging
+   signal reserved for orders that have been sitting too long so it never
+   gets confused with the status colors themselves. */
+
+/* ---- Embedded fonts (bundled locally, no network access at runtime) ----
+   Manrope (geometric sans, used for labels and prose) and JetBrains Mono
+   (used for table numbers, timers and prices, where fixed-width digits
+   read faster at a glance from across a kitchen) are both instantiated as
+   static-weight TrueType files from their Google Fonts variable sources,
+   since JavaFX's text layout does not support OpenType variable axes. */
+@font-face {
+    font-family: "ManropeMedium";
+    src: url("fonts/Manrope-Medium.ttf");
+}
+@font-face {
+    font-family: "ManropeBold";
+    src: url("fonts/Manrope-Bold.ttf");
+}
+@font-face {
+    font-family: "ManropeExtraBold";
+    src: url("fonts/Manrope-ExtraBold.ttf");
+}
+@font-face {
+    font-family: "JetBrainsMonoMedium";
+    src: url("fonts/JetBrainsMono-Medium.ttf");
+}
+@font-face {
+    font-family: "JetBrainsMonoBold";
+    src: url("fonts/JetBrainsMono-Bold.ttf");
+}
+
+.root {
+    -fx-font-family: "ManropeMedium";
+    -fx-background-color: -bg-app;
+
+    /* ---- Color tokens (looked-up colors, referenced below as -fx-...: -token-name;) ---- */
+    -bg-app: #0a0d13;
+    -bg-panel: #11151d;
+    -bg-column: #161b24;
+    -bg-card: #1c212c;
+    -border-subtle: #2a3040;
+    -text-primary: #f3f5f9;
+    -text-secondary: #9aa4b8;
+    -text-muted: #5c6578;
+    -accent-gold: #f3c969;
+
+    -status-placed: #4b8bf5;
+    -status-placed-bg: rgba(75, 139, 245, 0.12);
+    -status-preparing: #f59e0b;
+    -status-preparing-bg: rgba(245, 158, 11, 0.12);
+    -status-ready: #2fbf71;
+    -status-ready-bg: rgba(47, 191, 113, 0.12);
+    -status-served: #7d8aa3;
+    -status-served-bg: rgba(125, 138, 163, 0.10);
+
+    -age-warning: #eab308;
+    -age-critical: #ef4444;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Connecting / disconnected states                                       */
+/* ---------------------------------------------------------------------- */
+
+.connecting-label {
+    -fx-text-fill: -text-primary;
+    -fx-font-family: "ManropeBold";
+    -fx-font-size: 22px;
+    -fx-text-alignment: center;
+}
+
+.connection-lost-label {
+    -fx-text-fill: white;
+    -fx-background-color: -age-critical;
+    -fx-font-family: "ManropeBold";
+    -fx-font-size: 15px;
+    -fx-padding: 14;
+    -fx-alignment: center;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Header bar                                                             */
+/* ---------------------------------------------------------------------- */
+
+.header-bar {
+    -fx-background-color: -bg-panel;
+    -fx-border-color: transparent transparent -border-subtle transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.header-logo-dot {
+    -fx-fill: -accent-gold;
+}
+
+.header-title {
+    -fx-text-fill: -text-primary;
+    -fx-font-family: "ManropeExtraBold";
+    -fx-font-size: 26px;
+}
+
+.header-subtitle {
+    -fx-text-fill: -text-secondary;
+    -fx-font-family: "ManropeMedium";
+    -fx-font-size: 12px;
+}
+
+.header-clock {
+    -fx-text-fill: -accent-gold;
+    -fx-font-family: "JetBrainsMonoBold";
+    -fx-font-size: 20px;
+}
+
+.header-hint {
+    -fx-text-fill: -text-muted;
+    -fx-font-family: "ManropeMedium";
+    -fx-font-size: 12px;
+}
+
+.header-divider {
+    -fx-background-color: -border-subtle;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Board + columns                                                        */
+/* ---------------------------------------------------------------------- */
+
+.board-pane {
+    -fx-background-color: -bg-app;
+}
+
+.board-column {
+    -fx-background-color: -bg-column;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-width: 0 0 0 0;
+    -fx-padding: 0;
+}
+
+.board-column-header {
+    -fx-padding: 14 16 12 16;
+    -fx-background-radius: 14 14 0 0;
+}
+
+.column-status-dot {
+    -fx-stroke-width: 0;
+}
+
+.dot-placed   { -fx-fill: -status-placed; }
+.dot-preparing { -fx-fill: -status-preparing; }
+.dot-ready    { -fx-fill: -status-ready; }
+.dot-served   { -fx-fill: -status-served; }
+
+.board-column-title {
+    -fx-font-family: "ManropeExtraBold";
+    -fx-font-size: 16px;
+    -fx-text-fill: -text-primary;
+}
+
+.board-column-count {
+    -fx-font-family: "JetBrainsMonoBold";
+    -fx-font-size: 13px;
+    -fx-text-fill: -text-primary;
+    -fx-background-color: -bg-card;
+    -fx-background-radius: 10;
+    -fx-padding: 2 9 2 9;
+}
+
+.column-placed .board-column-header {
+    -fx-background-color: -status-placed-bg;
+}
+.column-placed .board-column-count {
+    -fx-text-fill: -status-placed;
+}
+
+.column-preparing .board-column-header {
+    -fx-background-color: -status-preparing-bg;
+}
+.column-preparing .board-column-count {
+    -fx-text-fill: -status-preparing;
+}
+
+.column-ready .board-column-header {
+    -fx-background-color: -status-ready-bg;
+}
+.column-ready .board-column-count {
+    -fx-text-fill: -status-ready;
+}
+
+.column-served .board-column-header {
+    -fx-background-color: -status-served-bg;
+}
+.column-served .board-column-count {
+    -fx-text-fill: -status-served;
+}
+
+.board-column-scroll,
+.board-column-scroll .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.board-column-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 10;
+}
+.board-column-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: -border-subtle;
+    -fx-background-radius: 6;
+}
+.board-column-scroll .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+.board-column-scroll .scroll-bar .increment-button,
+.board-column-scroll .scroll-bar .decrement-button {
+    -fx-opacity: 0;
+    -fx-padding: 0;
+}
+
+.board-column-empty {
+    -fx-text-fill: -text-muted;
+    -fx-font-family: "ManropeMedium";
+    -fx-font-style: italic;
+    -fx-padding: 24 0 0 4;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Order cards                                                            */
+/* ---------------------------------------------------------------------- */
+
+.order-card {
+    -fx-background-color: -bg-card;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 10, 0, 0, 3);
+}
+
+.status-placed {
+    -fx-border-color: -status-placed;
+}
+.status-preparing {
+    -fx-border-color: -status-preparing;
+}
+.status-ready {
+    -fx-border-color: -status-ready;
+}
+.status-served {
+    -fx-border-color: -border-subtle;
+    -fx-opacity: 0.7;
+}
+
+/* Aging signal: deliberately yellow/red, distinct from the amber used for
+   PREPARING, so staff never mistake "this column is preparing" for "this
+   particular order is overdue". Only applied while an order is still in
+   flight (SERVED orders are excluded in code). */
+.order-card.age-warning {
+    -fx-border-color: -age-warning;
+    -fx-border-width: 2.5;
+    -fx-effect: dropshadow(gaussian, rgba(234,179,8,0.45), 16, 0.25, 0, 0);
+}
+.order-card.age-critical {
+    -fx-border-color: -age-critical;
+    -fx-border-width: 3;
+    -fx-effect: dropshadow(gaussian, rgba(239,68,68,0.55), 20, 0.3, 0, 0);
+}
+
+.order-card-header {
+    -fx-alignment: center-left;
+}
+
+.order-card-dot {
+    -fx-stroke-width: 0;
+}
+
+.order-card-table {
+    -fx-font-family: "JetBrainsMonoBold";
+    -fx-font-size: 20px;
+    -fx-text-fill: -text-primary;
+}
+
+.order-card-timer {
+    -fx-font-family: "JetBrainsMonoMedium";
+    -fx-font-size: 13px;
+    -fx-text-fill: -text-secondary;
+}
+.order-card-timer.timer-warning {
+    -fx-text-fill: -age-warning;
+    -fx-font-family: "JetBrainsMonoBold";
+}
+.order-card-timer.timer-critical {
+    -fx-text-fill: -age-critical;
+    -fx-font-family: "JetBrainsMonoBold";
+}
+
+.order-card-divider {
+    -fx-background-color: -border-subtle;
+}
+
+.order-card-items {
+    -fx-padding: 2 0 2 0;
+}
+
+.order-item-row {
+    -fx-padding: 2 0 2 0;
+}
+
+.order-item-name {
+    -fx-font-family: "ManropeBold";
+    -fx-font-size: 14px;
+    -fx-text-fill: -text-primary;
+    -fx-wrap-text: true;
+}
+
+.order-item-detail {
+    -fx-font-family: "ManropeMedium";
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-secondary;
+    -fx-wrap-text: true;
+}
+
+.order-item-note {
+    -fx-font-family: "ManropeMedium";
+    -fx-font-size: 12px;
+    -fx-font-style: italic;
+    -fx-text-fill: -accent-gold;
+    -fx-wrap-text: true;
+}
+
+.order-card-footer {
+    -fx-alignment: center-left;
+}
+
+.order-card-total {
+    -fx-font-family: "JetBrainsMonoBold";
+    -fx-font-size: 16px;
+    -fx-text-fill: -accent-gold;
+}
+
+.order-card-done {
+    -fx-font-family: "ManropeBold";
+    -fx-font-size: 13px;
+    -fx-text-fill: -status-served;
+    -fx-background-color: -status-served-bg;
+    -fx-background-radius: 8;
+    -fx-padding: 8 10 8 10;
+    -fx-alignment: center;
+}
+
+.advance-button {
+    -fx-text-fill: #0a0d13;
+    -fx-font-family: "ManropeBold";
+    -fx-background-radius: 9;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 6, 0, 0, 2);
+}
+
+.advance-to-preparing {
+    -fx-background-color: -status-preparing;
+}
+.advance-to-preparing:hover {
+    -fx-background-color: derive(-status-preparing, 15%);
+}
+
+.advance-to-ready {
+    -fx-background-color: -status-ready;
+}
+.advance-to-ready:hover {
+    -fx-background-color: derive(-status-ready, 15%);
+}
+
+.advance-to-served {
+    -fx-background-color: -status-served;
+    -fx-text-fill: white;
+}
+.advance-to-served:hover {
+    -fx-background-color: derive(-status-served, 15%);
+}
+
+.touch-button {
+    -fx-font-size: 14px;
+    -fx-padding: 10 12 10 12;
+}

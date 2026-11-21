@@ -1,0 +1,19 @@
+// JavaFX app that runs full-screen on a table's tablet: browse the menu,
+// customize items, place an order, and watch that order's status live.
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+javafx {
+    version = "17.0.9"
+    modules = ['javafx.controls']
+}
+
+dependencies {
+    implementation project(':shared')
+}
+
+application {
+    mainClass = 'school.swe2040.restaurant.customer.app.CustomerApp'
+}

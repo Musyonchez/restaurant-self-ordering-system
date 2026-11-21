@@ -1,0 +1,17 @@
+// The socket server: accepts customer and kitchen client connections, holds
+// the live order queue, and broadcasts order/status events to clients.
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':shared')
+
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+application {
+    mainClass = 'school.swe2040.restaurant.server.ServerMain'
+}

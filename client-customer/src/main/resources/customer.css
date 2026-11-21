@@ -1,0 +1,737 @@
+/* Styling for the customer tablet app.
+   Large touch targets, a real brand palette, the bundled Inter font family,
+   and clear visual hierarchy throughout, since this screen simulates a
+   permanently mounted touch tablet rather than a desktop app driven by a
+   mouse. See fonts/ for the bundled Inter weights loaded below. */
+
+/* ---------- Bundled font faces (local files, no network calls) ---------- */
+
+@font-face {
+    src: url("fonts/Inter-Regular.ttf");
+}
+
+@font-face {
+    src: url("fonts/Inter-Medium.ttf");
+}
+
+@font-face {
+    src: url("fonts/Inter-SemiBold.ttf");
+}
+
+@font-face {
+    src: url("fonts/Inter-Bold.ttf");
+}
+
+@font-face {
+    src: url("fonts/Inter-ExtraBold.ttf");
+}
+
+/* ---------- Design tokens ---------- */
+/* Each downloaded weight registers under its own font-family name rather
+   than one "Inter" family with a weight axis (confirmed by inspecting the
+   files), so weights other than regular/bold are selected by family name:
+   "Inter Medium", "Inter SemiBold", "Inter ExtraBold". Regular and bold use
+   "Inter" with -fx-font-weight. */
+
+.root {
+    -rk-bg: #F7F1E6;
+    -rk-surface: #FFFFFF;
+    -rk-surface-alt: #EFE6D3;
+    -rk-surface-dark: #2A231D;
+    -rk-surface-dark-alt: #3A3127;
+    -rk-ink: #2A231D;
+    -rk-ink-soft: #6E6256;
+    -rk-ink-invert: #F6ECD9;
+    -rk-ink-invert-soft: #D8C9B3;
+    -rk-border: #E3D9C4;
+    -rk-primary: #B5472B;
+    -rk-primary-hover: #C65B3C;
+    -rk-primary-pressed: #9A3A22;
+    -rk-accent: #D99A2B;
+    -rk-accent-hover: #E4AC45;
+    -rk-success: #3C8F5C;
+    -rk-info: #4C6FD6;
+    -rk-danger: #D1483F;
+    -rk-danger-hover: #DD6056;
+
+    -fx-font-family: "Inter";
+    -fx-background-color: -rk-bg;
+}
+
+/* Generic base rules so every plain control picks up the brand font and ink
+   color even where a specific style class does not override it. */
+
+.label, .text-field, .combo-box, .combo-box .list-cell, .spinner,
+.check-box, .text-area, .list-cell, .button {
+    -fx-font-family: "Inter";
+    -fx-text-fill: -rk-ink;
+}
+
+/* ---------- Table setup screen ---------- */
+
+.setup-pane {
+    -fx-background-color: linear-gradient(to bottom right, #2A231D, #17120F);
+}
+
+.setup-card {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 28;
+    -fx-border-radius: 28;
+    -fx-border-color: rgba(255, 255, 255, 0.12);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 36, 0, 0, 14);
+}
+
+.setup-logo {
+    -fx-font-size: 38px;
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 999;
+    -fx-min-width: 86;
+    -fx-min-height: 86;
+    -fx-max-width: 86;
+    -fx-max-height: 86;
+    -fx-alignment: CENTER;
+}
+
+.setup-title {
+    -fx-font-family: "Inter ExtraBold";
+    -fx-text-fill: -rk-ink-invert;
+}
+
+.setup-subtitle {
+    -fx-text-fill: -rk-ink-invert-soft;
+}
+
+.setup-field {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: rgba(255, 255, 255, 0.18);
+    -fx-border-width: 1;
+    -fx-text-fill: -rk-ink-invert;
+    -fx-font-family: "Inter SemiBold";
+    -fx-prompt-text-fill: -rk-ink-invert-soft;
+    -fx-highlight-fill: -rk-accent;
+    -fx-highlight-text-fill: -rk-surface-dark;
+}
+
+.setup-field:focused {
+    -fx-border-color: -rk-accent;
+    -fx-border-width: 2;
+}
+
+.setup-error {
+    -fx-text-fill: #F2A09B;
+    -fx-font-family: "Inter Medium";
+    -fx-font-size: 14px;
+}
+
+.setup-footer-hint {
+    -fx-text-fill: -rk-ink-invert-soft;
+    -fx-font-size: 12px;
+}
+
+/* ---------- Header bar ---------- */
+
+.header-bar {
+    -fx-background-color: -rk-surface-dark;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 10, 0, 0, 2);
+}
+
+.table-badge {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 999;
+    -fx-padding: 8 18 8 14;
+}
+
+.brand-mark {
+    -fx-font-size: 20px;
+}
+
+.header-title {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 18px;
+    -fx-text-fill: -rk-ink-invert;
+}
+
+.header-hint {
+    -fx-font-size: 13px;
+    -fx-text-fill: -rk-ink-invert-soft;
+}
+
+/* ---------- Category navigation (TabPane re-skinned as pill tabs) ---------- */
+
+.menu-tabs .tab-header-area {
+    -fx-background-color: -rk-surface;
+    -fx-padding: 14 16 0 16;
+}
+
+.menu-tabs .tab-header-area .tab-header-background {
+    -fx-background-color: -rk-surface;
+    -fx-effect: dropshadow(gaussian, rgba(42, 35, 29, 0.06), 4, 0, 0, 1);
+}
+
+.menu-tabs .headers-region .tab {
+    -fx-background-color: -rk-surface-alt;
+    -fx-background-radius: 999;
+    -fx-background-insets: 4 6 4 6;
+    -fx-padding: 11 22 11 22;
+}
+
+.menu-tabs .headers-region .tab:hover {
+    -fx-background-color: derive(-rk-surface-alt, -10%);
+}
+
+.menu-tabs .headers-region .tab:selected {
+    -fx-background-color: -rk-primary;
+}
+
+.menu-tabs .headers-region .tab .tab-label {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 15px;
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.menu-tabs .headers-region .tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+.menu-tabs .tab-content-area {
+    -fx-background-color: -rk-bg;
+}
+
+.menu-tabs > .tab-header-area > .control-buttons-tab {
+    -fx-background-color: transparent;
+}
+
+/* ---------- Category heading + menu grid ---------- */
+
+.category-content {
+    -fx-background-color: -rk-bg;
+}
+
+.category-heading {
+    -fx-font-family: "Inter";
+    -fx-font-weight: bold;
+    -fx-font-size: 24px;
+    -fx-text-fill: -rk-ink;
+}
+
+.menu-scroll, .menu-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ---------- Menu item cards ---------- */
+
+.menu-item-card {
+    -fx-background-color: -rk-surface;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: -rk-border;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(42, 35, 29, 0.08), 10, 0, 0, 3);
+    -fx-cursor: hand;
+}
+
+.menu-item-card:hover {
+    -fx-border-color: -rk-primary;
+    -fx-effect: dropshadow(gaussian, rgba(181, 71, 43, 0.22), 18, 0, 0, 6);
+    -fx-scale-x: 1.012;
+    -fx-scale-y: 1.012;
+}
+
+.menu-item-category-badge {
+    -fx-font-size: 18px;
+    -fx-background-color: -rk-surface-alt;
+    -fx-background-radius: 10;
+    -fx-padding: 4 9 4 9;
+    -fx-min-width: 32;
+    -fx-alignment: CENTER;
+}
+
+.menu-item-name {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 17px;
+    -fx-text-fill: -rk-ink;
+}
+
+.menu-item-description {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.menu-item-hints {
+    -fx-padding: 2 0 0 0;
+}
+
+.hint-chip {
+    -fx-font-family: "Inter Medium";
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -rk-primary;
+    -fx-background-color: derive(-rk-primary, 88%);
+    -fx-background-radius: 999;
+    -fx-padding: 3 9 3 9;
+}
+
+.menu-item-price {
+    -fx-font-family: "Inter ExtraBold";
+    -fx-font-size: 19px;
+    -fx-text-fill: -rk-primary;
+}
+
+/* ---------- Buttons ---------- */
+
+.touch-button {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 15px;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+    -fx-padding: 12 18 12 18;
+}
+
+.primary-button {
+    -fx-background-color: -rk-primary;
+    -fx-text-fill: white;
+}
+
+.primary-button:hover {
+    -fx-background-color: -rk-primary-hover;
+}
+
+.primary-button:pressed {
+    -fx-background-color: -rk-primary-pressed;
+    -fx-translate-y: 1;
+}
+
+.primary-button:disabled {
+    -fx-opacity: 0.45;
+}
+
+.secondary-button {
+    -fx-background-color: -rk-surface-dark;
+    -fx-text-fill: -rk-ink-invert;
+}
+
+.secondary-button:hover {
+    -fx-background-color: -rk-surface-dark-alt;
+}
+
+.secondary-button:pressed {
+    -fx-background-color: derive(-rk-surface-dark, -10%);
+    -fx-translate-y: 1;
+}
+
+.remove-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -rk-danger;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 14px;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-color: -rk-border;
+    -fx-border-width: 1;
+    -fx-min-width: 30;
+    -fx-min-height: 30;
+    -fx-max-width: 30;
+    -fx-max-height: 30;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+}
+
+.remove-button:hover {
+    -fx-background-color: -rk-danger;
+    -fx-text-fill: white;
+    -fx-border-color: -rk-danger;
+}
+
+.remove-button:pressed {
+    -fx-background-color: -rk-danger-hover;
+}
+
+/* ---------- Cart panel ---------- */
+
+.cart-panel {
+    -fx-background-color: -rk-surface;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: -rk-border;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(42, 35, 29, 0.07), 14, 0, 0, 4);
+}
+
+.cart-icon {
+    -fx-font-size: 18px;
+}
+
+.cart-title {
+    -fx-font-family: "Inter";
+    -fx-font-weight: bold;
+    -fx-font-size: 19px;
+    -fx-text-fill: -rk-ink;
+}
+
+.cart-count-badge {
+    -fx-background-color: -rk-primary;
+    -fx-text-fill: white;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 12px;
+    -fx-background-radius: 999;
+    -fx-padding: 2 9 2 9;
+}
+
+.cart-list, .cart-list > .virtual-flow, .cart-list .list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+.cart-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 10 2 10 2;
+    -fx-border-color: transparent transparent -rk-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.cart-list .list-cell:empty {
+    -fx-border-width: 0;
+}
+
+.cart-list .list-cell:selected, .cart-list .list-cell:focused {
+    -fx-background-color: transparent;
+}
+
+.cart-list .placeholder .label {
+    -fx-text-fill: -rk-ink-soft;
+    -fx-font-size: 13px;
+    -fx-text-alignment: CENTER;
+    -fx-wrap-text: true;
+}
+
+.cart-item-qty {
+    -fx-background-color: -rk-surface-alt;
+    -fx-text-fill: -rk-ink;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 12px;
+    -fx-background-radius: 8;
+    -fx-padding: 3 7 3 7;
+}
+
+.cart-item-name {
+    -fx-font-family: "Inter Medium";
+    -fx-font-size: 14px;
+    -fx-text-fill: -rk-ink;
+}
+
+.cart-item-summary {
+    -fx-font-size: 11px;
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.cart-item-price {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 13px;
+    -fx-text-fill: -rk-primary;
+}
+
+.cart-footer {
+    -fx-border-color: -rk-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 14 0 0 0;
+}
+
+.cart-total-caption {
+    -fx-font-size: 14px;
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.cart-total {
+    -fx-font-family: "Inter ExtraBold";
+    -fx-font-size: 22px;
+    -fx-text-fill: -rk-ink;
+}
+
+/* ---------- My Orders / live status area ---------- */
+
+.my-orders-area {
+    -fx-background-color: -rk-surface-alt;
+    -fx-border-color: -rk-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.my-orders-title {
+    -fx-font-family: "Inter";
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-text-fill: -rk-ink;
+}
+
+.my-orders-scroll, .my-orders-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.my-orders-empty-hint {
+    -fx-text-fill: -rk-ink-soft;
+    -fx-font-size: 13px;
+    -fx-padding: 10;
+}
+
+.order-status-card {
+    -fx-background-color: -rk-surface;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-width: 1.5;
+    -fx-border-color: -rk-border;
+    -fx-effect: dropshadow(gaussian, rgba(42, 35, 29, 0.07), 8, 0, 0, 2);
+}
+
+.status-placed {
+    -fx-border-color: derive(-rk-ink-soft, 45%);
+}
+
+.status-preparing {
+    -fx-border-color: -rk-accent;
+}
+
+.status-ready {
+    -fx-border-color: -rk-success;
+}
+
+.status-served {
+    -fx-border-color: -rk-info;
+}
+
+.order-status-id {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 13px;
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.order-status-badge {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 11px;
+    -fx-background-radius: 999;
+    -fx-padding: 4 10 4 10;
+}
+
+.badge-placed {
+    -fx-background-color: derive(-rk-ink-soft, 65%);
+    -fx-text-fill: -rk-ink;
+}
+
+.badge-preparing {
+    -fx-background-color: -rk-accent;
+    -fx-text-fill: -rk-surface-dark;
+}
+
+.badge-ready {
+    -fx-background-color: -rk-success;
+    -fx-text-fill: white;
+}
+
+.badge-served {
+    -fx-background-color: -rk-info;
+    -fx-text-fill: white;
+}
+
+.order-status-items {
+    -fx-padding: 2 0 2 0;
+}
+
+.order-status-item-line {
+    -fx-font-family: "Inter Medium";
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -rk-ink;
+}
+
+.order-status-item-summary {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.order-status-total {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 13px;
+    -fx-text-fill: -rk-ink;
+}
+
+/* Status stepper: circles connected by a bar, the clearest way to show
+   progress through PLACED, PREPARING, READY and SERVED at a glance. */
+
+.stepper-row {
+    -fx-padding: 8 0 0 0;
+}
+
+.step-circle {
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+    -fx-max-width: 26;
+    -fx-max-height: 26;
+    -fx-background-radius: 999;
+    -fx-alignment: CENTER;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 11px;
+}
+
+.step-circle-upcoming {
+    -fx-background-color: -rk-surface-alt;
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.step-circle-current {
+    -fx-background-color: -rk-accent;
+    -fx-text-fill: -rk-surface-dark;
+    -fx-effect: dropshadow(gaussian, rgba(217, 154, 43, 0.55), 7, 0, 0, 0);
+}
+
+.step-circle-done {
+    -fx-background-color: -rk-success;
+    -fx-text-fill: white;
+}
+
+.step-label {
+    -fx-font-size: 9.5px;
+}
+
+.step-label-upcoming {
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.step-label-current {
+    -fx-font-family: "Inter SemiBold";
+    -fx-text-fill: -rk-ink;
+}
+
+.step-label-done {
+    -fx-text-fill: -rk-success;
+}
+
+.step-connector {
+    -fx-min-height: 3;
+    -fx-max-height: 3;
+    -fx-background-radius: 2;
+}
+
+.step-connector-upcoming {
+    -fx-background-color: -rk-border;
+}
+
+.step-connector-done {
+    -fx-background-color: -rk-success;
+}
+
+.connection-lost-label {
+    -fx-text-fill: -rk-danger;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 13px;
+    -fx-padding: 10;
+    -fx-background-color: derive(-rk-danger, 88%);
+    -fx-background-radius: 10;
+}
+
+/* ---------- Customize dialog and alerts ---------- */
+/* Dialog and Alert windows run in their own Scene, so this stylesheet is
+   attached to each one explicitly (see CustomizeDialog and
+   TableSetupPane), and the generic ".dialog-pane" selector below styles
+   both the customize dialog and the connection-error alert consistently. */
+
+.dialog-pane {
+    -fx-background-color: -rk-surface;
+    -fx-font-family: "Inter";
+}
+
+.dialog-pane > .header-panel {
+    -fx-background-color: -rk-surface-dark;
+}
+
+.dialog-pane > .header-panel .label {
+    -fx-text-fill: -rk-ink-invert;
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 16px;
+}
+
+.customize-dialog {
+    -fx-background-color: -rk-surface;
+}
+
+.customize-dialog .label {
+    -fx-text-fill: -rk-ink-soft;
+}
+
+.field-label {
+    -fx-font-family: "Inter SemiBold";
+    -fx-font-size: 13px;
+    -fx-text-fill: -rk-ink;
+    -fx-padding: 6 0 0 0;
+}
+
+.dialog-pane .combo-box {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -rk-border;
+    -fx-border-width: 1;
+    -fx-padding: 2;
+}
+
+.dialog-pane .spinner {
+    -fx-background-radius: 10;
+}
+
+.dialog-pane .text-area {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -rk-border;
+    -fx-border-width: 1;
+}
+
+.dialog-pane .text-area .content {
+    -fx-background-color: -rk-surface;
+    -fx-background-radius: 10;
+}
+
+.dialog-pane .check-box {
+    -fx-font-size: 14px;
+}
+
+.dialog-pane .button {
+    -fx-background-radius: 10;
+    -fx-font-family: "Inter SemiBold";
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+    -fx-background-color: -rk-surface-alt;
+    -fx-text-fill: -rk-ink;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: derive(-rk-surface-alt, -10%);
+}
+
+.dialog-pane .button:default {
+    -fx-background-color: -rk-primary;
+    -fx-text-fill: white;
+}
+
+.dialog-pane .button:default:hover {
+    -fx-background-color: -rk-primary-hover;
+}
+
+/* ---------- Scroll bars (shared look across the whole app) ---------- */
+
+.scroll-pane, .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:horizontal, .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: -rk-border;
+    -fx-background-radius: 6;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: -rk-ink-soft;
+}
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
