@@ -35,7 +35,7 @@ class OrderManagerTest {
     @Test
     void placingAnOrderStartsItAtPlacedStatus() {
         OrderManager manager = new OrderManager();
-        Order order = manager.placeOrder(4, oneBurger());
+        Order order = manager.placeOrder(4, oneBurger()).orElseThrow();
 
         assertEquals(OrderStatus.PLACED, order.getStatus());
         assertEquals(4, order.getTableNumber());
@@ -43,9 +43,28 @@ class OrderManagerTest {
     }
 
     @Test
+    void placingAnOrderWithNoItemsIsRejected() {
+        OrderManager manager = new OrderManager();
+
+        Optional<Order> result = manager.placeOrder(4, Collections.emptyList());
+
+        assertFalse(result.isPresent());
+        assertTrue(manager.getAllOrders().isEmpty());
+    }
+
+    @Test
+    void placingAnOrderWithANonPositiveTableNumberIsRejected() {
+        OrderManager manager = new OrderManager();
+
+        assertFalse(manager.placeOrder(0, oneBurger()).isPresent());
+        assertFalse(manager.placeOrder(-1, oneBurger()).isPresent());
+        assertTrue(manager.getAllOrders().isEmpty());
+    }
+
+    @Test
     void validTransitionsAdvanceOneStepAtATime() {
         OrderManager manager = new OrderManager();
-        Order order = manager.placeOrder(1, oneBurger());
+        Order order = manager.placeOrder(1, oneBurger()).orElseThrow();
 
         Optional<Order> afterPreparing = manager.advanceStatus(order.getId(), OrderStatus.PREPARING);
         assertTrue(afterPreparing.isPresent());
@@ -63,7 +82,7 @@ class OrderManagerTest {
     @Test
     void skippingAStepIsRejected() {
         OrderManager manager = new OrderManager();
-        Order order = manager.placeOrder(2, oneBurger());
+        Order order = manager.placeOrder(2, oneBurger()).orElseThrow();
 
         Optional<Order> result = manager.advanceStatus(order.getId(), OrderStatus.READY);
 
@@ -74,7 +93,7 @@ class OrderManagerTest {
     @Test
     void movingBackwardsIsRejected() {
         OrderManager manager = new OrderManager();
-        Order order = manager.placeOrder(3, oneBurger());
+        Order order = manager.placeOrder(3, oneBurger()).orElseThrow();
         manager.advanceStatus(order.getId(), OrderStatus.PREPARING);
 
         Optional<Order> result = manager.advanceStatus(order.getId(), OrderStatus.PLACED);
@@ -93,7 +112,7 @@ class OrderManagerTest {
     @Test
     void concurrentAdvanceAttemptsOnTheSameOrderOnlySucceedOnce() throws InterruptedException {
         OrderManager manager = new OrderManager();
-        Order order = manager.placeOrder(5, oneBurger());
+        Order order = manager.placeOrder(5, oneBurger()).orElseThrow();
 
         int threadCount = 8;
         ExecutorService pool = Executors.newFixedThreadPool(threadCount);

@@ -28,12 +28,25 @@ public final class OrderManager {
     /**
      * Creates and stores a new order for {@code tableNumber}, starting in
      * status {@link OrderStatus#PLACED}. The manager assigns the order id.
+     *
+     * <p>The customer UI already disables its own "Place Order" button
+     * while the cart is empty and never lets a table number below 1 be
+     * entered, but the server is the one place that cannot assume every
+     * client obeys those rules, so it rejects the same conditions here
+     * too: an empty item list (nothing to tell the kitchen to make) or a
+     * non-positive table number (nowhere to route the result to).
+     *
+     * @return the stored order, or empty if {@code tableNumber} or
+     *         {@code items} is invalid, in which case nothing is stored
      */
-    public Order placeOrder(int tableNumber, List<OrderItem> items) {
+    public Optional<Order> placeOrder(int tableNumber, List<OrderItem> items) {
+        if (tableNumber <= 0 || items.isEmpty()) {
+            return Optional.empty();
+        }
         String id = UUID.randomUUID().toString();
         Order order = Order.newOrder(id, tableNumber, items);
         orders.put(id, order);
-        return order;
+        return Optional.of(order);
     }
 
     /**

@@ -154,4 +154,48 @@ class EndToEndOrderFlowTest {
         lateKitchen.close();
         customer.close();
     }
+
+    @Test
+    @Timeout(10)
+    void aSecondConnectionForATableAlreadyInUseIsRejectedWithoutDisturbingTheFirst() throws Exception {
+        int tableNumber = 9;
+        java.util.concurrent.CountDownLatch secondConnectionDisconnected = new java.util.concurrent.CountDownLatch(1);
+        BlockingQueue<Order> kitchenOrderCreated = new LinkedBlockingQueue<>();
+        BlockingQueue<Order> firstCustomerStatusUpdates = new LinkedBlockingQueue<>();
+
+        ServerConnection kitchen = ServerConnection.connectAsKitchen(HOST, TEST_PORT);
+        kitchen.setOnOrderCreated(kitchenOrderCreated::add);
+
+        ServerConnection firstCustomer = ServerConnection.connectAsCustomer(HOST, TEST_PORT, tableNumber);
+        firstCustomer.setOnStatusChanged(firstCustomerStatusUpdates::add);
+
+        ServerConnection secondCustomer = ServerConnection.connectAsCustomer(HOST, TEST_PORT, tableNumber);
+        secondCustomer.setOnDisconnected(secondConnectionDisconnected::countDown);
+
+        assertTrue(secondConnectionDisconnected.await(5, TimeUnit.SECONDS),
+                "a second connection claiming an already-connected table number should be rejected");
+
+        // The first connection must still be the one registered for this
+        // table: placing an order from it should still reach the kitchen
+        // and the resulting confirmation should still come back to it,
+        // proving the rejected duplicate never silently took its place.
+        MenuItem menuItem = MenuCatalog.getAllItems().get(0);
+        OrderItem orderItem = new OrderItem(menuItem, 1, null, null, List.of(), "");
+        Order placedOrder = new Order(
+                java.util.UUID.randomUUID().toString(), tableNumber, List.of(orderItem),
+                OrderStatus.PLACED, java.time.Instant.now());
+        firstCustomer.placeOrder(placedOrder);
+
+        Order seenByKitchen = kitchenOrderCreated.poll(5, TimeUnit.SECONDS);
+        assertNotNull(seenByKitchen, "kitchen never received the order from the surviving connection");
+        assertEquals(tableNumber, seenByKitchen.getTableNumber());
+
+        Order confirmation = firstCustomerStatusUpdates.poll(5, TimeUnit.SECONDS);
+        assertNotNull(confirmation, "the first, legitimate connection never got its own order confirmation back");
+        assertEquals(seenByKitchen.getId(), confirmation.getId());
+
+        kitchen.close();
+        firstCustomer.close();
+        secondCustomer.close();
+    }
 }

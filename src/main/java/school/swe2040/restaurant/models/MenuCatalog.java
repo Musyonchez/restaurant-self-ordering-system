@@ -77,7 +77,7 @@ public final class MenuCatalog {
                 MenuCategory.DRINK, 4.50, true, false, Collections.emptyList()));
         items.add(new MenuItem("drink-coffee", "House Coffee",
                 "Freshly brewed coffee",
-                MenuCategory.DRINK, 3.80, false, false, Arrays.asList("Extra shot", "Oat milk")));
+                MenuCategory.DRINK, 3.80, true, false, Arrays.asList("Extra shot", "Oat milk")));
 
         items.add(new MenuItem("dessert-cheesecake", "New York Cheesecake",
                 "Classic baked cheesecake, berry compote",

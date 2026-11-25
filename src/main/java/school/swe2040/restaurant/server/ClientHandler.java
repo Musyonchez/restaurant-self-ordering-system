@@ -16,6 +16,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Optional;
 
 /**
  * One client's connection to the server, running on its own thread for the
@@ -54,7 +55,14 @@ public final class ClientHandler extends Thread {
                 System.err.println("Expected a handshake message first, got: " + first);
                 return;
             }
-            handleHandshake((HandshakeMessage) first);
+            if (!handleHandshake((HandshakeMessage) first)) {
+                // Rejected (invalid table number, or a duplicate connection
+                // for a table that's already taken): fall through to the
+                // finally block below, which closes the socket, rather
+                // than entering the message loop on a connection that was
+                // never actually registered with anything.
+                return;
+            }
 
             while (true) {
                 Object message = in.readObject();
@@ -69,17 +77,41 @@ public final class ClientHandler extends Thread {
         }
     }
 
-    private void handleHandshake(HandshakeMessage handshake) {
+    /**
+     * Returns whether this connection was accepted. A {@code false} return
+     * means it was never registered anywhere (invalid table number, or a
+     * duplicate connection for a table that already has one); the caller
+     * must close the connection immediately rather than entering the
+     * normal message loop on it.
+     */
+    private boolean handleHandshake(HandshakeMessage handshake) {
         this.role = handshake.getRole();
         if (role == ClientRole.KITCHEN) {
             registry.registerKitchen(this);
             send(new OrderSnapshotMessage(orderManager.getAllOrders()));
             System.out.println("Kitchen display connected.");
-        } else {
-            this.tableNumber = handshake.getTableNumber();
-            registry.registerCustomer(tableNumber, this);
-            System.out.println("Table " + tableNumber + " connected.");
+            return true;
         }
+
+        this.tableNumber = handshake.getTableNumber();
+        if (tableNumber <= 0) {
+            System.err.println("Rejecting customer handshake with invalid table number: " + tableNumber);
+            return false;
+        }
+        // The customer UI already stops a second device from claiming a
+        // table number that's visibly in use, but the server cannot assume
+        // every client is well-behaved: without this check, a second
+        // connection for the same table would silently replace the first
+        // in the registry, so the original device would stop receiving
+        // order updates with no indication anything went wrong for either
+        // side.
+        if (!registry.registerCustomer(tableNumber, this)) {
+            System.err.println("Rejecting duplicate connection for table " + tableNumber
+                    + ": that table is already connected.");
+            return false;
+        }
+        System.out.println("Table " + tableNumber + " connected.");
+        return true;
     }
 
     private void handleMessage(Object message) {
@@ -94,9 +126,20 @@ public final class ClientHandler extends Thread {
 
     private void handlePlaceOrder(PlaceOrderMessage placeOrderMessage) {
         Order submitted = placeOrderMessage.getOrder();
-        Order stored = orderManager.placeOrder(submitted.getTableNumber(), submitted.getItems());
-        registry.broadcastToKitchens(new OrderCreatedEvent(stored));
-        registry.sendToTable(stored.getTableNumber(), new OrderStatusChangedEvent(stored));
+        Optional<Order> stored = orderManager.placeOrder(submitted.getTableNumber(), submitted.getItems());
+        if (!stored.isPresent()) {
+            // The customer UI never sends this (an empty cart disables its
+            // Place Order button, and it never accepts a non-positive table
+            // number), so this only fires for a client not playing by the
+            // rules. There is no rejection message in the protocol, and
+            // adding one for a case the real UI cannot trigger is not worth
+            // the scope here; logging and dropping the message is enough.
+            System.err.println("Rejected invalid order from " + describeConnection() + ": table="
+                    + submitted.getTableNumber() + ", items=" + submitted.getItems().size());
+            return;
+        }
+        registry.broadcastToKitchens(new OrderCreatedEvent(stored.get()));
+        registry.sendToTable(stored.get().getTableNumber(), new OrderStatusChangedEvent(stored.get()));
     }
 
     private void handleUpdateStatus(UpdateStatusMessage updateStatusMessage) {

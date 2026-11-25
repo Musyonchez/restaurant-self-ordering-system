@@ -27,9 +27,14 @@ public final class MenuItemCard extends VBox {
     public MenuItemCard(MenuItem menuItem, Consumer<OrderItem> onAddToCart) {
         setSpacing(10);
         setPadding(new Insets(18));
-        setPrefWidth(272);
+        // At the app's fixed 1280-wide window, the menu area (after the cart
+        // panel and all padding/gaps) works out to roughly 830-845px. A
+        // 272px card only ever fits 2 per row there (3 would need 852px),
+        // leaving close to a third of that width empty. 250px comfortably
+        // fits 3 per row (786px) with margin to spare.
+        setPrefWidth(250);
         setMinHeight(210);
-        setMaxWidth(272);
+        setMaxWidth(250);
         getStyleClass().add("menu-item-card");
 
         Label categoryBadge = new Label(OrderItemFormatter.categoryIcon(menuItem.getCategory()));

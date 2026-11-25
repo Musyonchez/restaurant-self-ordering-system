@@ -26,8 +26,16 @@ public final class ConnectionRegistry {
         kitchenConnections.remove(connection);
     }
 
-    public void registerCustomer(int tableNumber, ClientHandler connection) {
-        customerConnectionsByTable.put(tableNumber, connection);
+    /**
+     * Registers {@code connection} for {@code tableNumber}, unless another
+     * connection already holds that table number. Returns whether
+     * registration succeeded: a {@code false} return means {@code
+     * connection} was never stored here, so the caller must not treat it
+     * as this table's active connection (in particular, must not route
+     * events to it or let it silently replace and orphan the real one).
+     */
+    public boolean registerCustomer(int tableNumber, ClientHandler connection) {
+        return customerConnectionsByTable.putIfAbsent(tableNumber, connection) == null;
     }
 
     public void unregisterCustomer(int tableNumber, ClientHandler connection) {
