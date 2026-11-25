@@ -1,7 +1,0 @@
-// Domain model, fixed menu catalog and wire protocol message classes shared by
-// the server and both JavaFX clients.
-dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.2')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}

@@ -1,25 +1,69 @@
-// Root build file. Shared configuration for every subproject lives here so each
-// subproject's own build.gradle only needs to declare what makes it different.
-subprojects {
-    apply plugin: 'java'
+// Single-module build: the central server and both JavaFX clients
+// (CustomerApp, KitchenApp) all live in this one Gradle project, sharing one
+// classpath, so model and protocol classes are never duplicated or allowed
+// to drift between the server and the clients.
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
-    repositories {
-        mavenCentral()
-    }
+repositories {
+    mavenCentral()
+}
 
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-    }
+javafx {
+    version = "17.0.9"
+    modules = ['javafx.controls']
+}
 
-    // Source files use literal Unicode glyphs (icons in the customer UI),
-    // so compile with UTF-8 explicitly rather than relying on the
-    // platform default encoding, which is not UTF-8 on Windows.
-    tasks.withType(JavaCompile).configureEach {
-        options.encoding = 'UTF-8'
-    }
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Three runnable entry points share this one module: the customer tablet
+// app and the kitchen display app (both JavaFX) and the plain-Java socket
+// server. `application.mainClass` picks the default for `./gradlew run`;
+// the two extra JavaExec tasks below give each of the other entry points
+// its own named run task.
+application {
+    mainClass = 'school.swe2040.restaurant.client.CustomerApp'
+}
+
+tasks.register('runCustomer', JavaExec) {
+    group = 'application'
+    description = 'Runs the customer tablet app.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'school.swe2040.restaurant.client.CustomerApp'
+}
+
+tasks.register('runKitchen', JavaExec) {
+    group = 'application'
+    description = 'Runs the kitchen display app.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'school.swe2040.restaurant.client.KitchenApp'
+}
+
+tasks.register('runServer', JavaExec) {
+    group = 'application'
+    description = 'Runs the central restaurant server. Accepts an optional port as the first argument.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'school.swe2040.restaurant.server.RestaurantServer'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+// Source files use literal Unicode glyphs (icons in the customer UI),
+// so compile with UTF-8 explicitly rather than relying on the
+// platform default encoding, which is not UTF-8 on Windows.
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
