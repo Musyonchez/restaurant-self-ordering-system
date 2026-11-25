@@ -73,13 +73,8 @@
     -fx-background-color: linear-gradient(to bottom right, #2A231D, #17120F);
 }
 
-.setup-card {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-    -fx-background-radius: 28;
-    -fx-border-radius: 28;
-    -fx-border-color: rgba(255, 255, 255, 0.12);
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 36, 0, 0, 14);
+.setup-divider {
+    -fx-background-color: rgba(255, 255, 255, 0.12);
 }
 
 .setup-logo {

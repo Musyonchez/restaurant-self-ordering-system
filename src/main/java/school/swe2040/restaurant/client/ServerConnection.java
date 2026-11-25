@@ -16,6 +16,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
@@ -50,6 +51,10 @@ public final class ServerConnection {
     };
     private volatile Runnable disconnectListener = () -> {
     };
+    // A failed send() and the read-side listenLoop() can both independently
+    // observe the same broken connection; this guarantees the UI is only
+    // ever told about it once, instead of the error label piling up.
+    private final AtomicBoolean disconnectNotified = new AtomicBoolean(false);
 
     /** Connects as a customer tablet for the given table number. */
     public static ServerConnection connectAsCustomer(String host, int port, int tableNumber) throws IOException {
@@ -76,14 +81,22 @@ public final class ServerConnection {
         this.in = new ObjectInputStream(socket.getInputStream());
     }
 
-    /** Called from the customer UI when the customer taps "Place Order". */
-    public void placeOrder(Order order) {
-        send(new PlaceOrderMessage(order));
+    /**
+     * Called from the customer UI when the customer taps "Place Order".
+     * Returns whether the order actually reached the server: the caller
+     * must not clear the cart or otherwise assume success on a false
+     * return, since the order was never sent.
+     */
+    public boolean placeOrder(Order order) {
+        return send(new PlaceOrderMessage(order));
     }
 
-    /** Called from the kitchen UI when staff tap the button to advance an order. */
-    public void advanceOrder(String orderId, OrderStatus newStatus) {
-        send(new UpdateStatusMessage(orderId, newStatus));
+    /**
+     * Called from the kitchen UI when staff tap the button to advance an
+     * order. Returns whether the update actually reached the server.
+     */
+    public boolean advanceOrder(String orderId, OrderStatus newStatus) {
+        return send(new UpdateStatusMessage(orderId, newStatus));
     }
 
     /** Registers the callback invoked with the full order list right after connecting (kitchen only). */
@@ -114,14 +127,32 @@ public final class ServerConnection {
         }
     }
 
-    private void send(Message message) {
+    /**
+     * Returns whether the message was actually written to the socket. A
+     * failed send means the connection is already broken, so this also
+     * closes the socket and notifies the disconnect listener itself,
+     * rather than relying on the read-side listen loop to eventually
+     * notice: that loop only fails on its next incoming read, which may
+     * never come, leaving the UI never told the connection died.
+     */
+    private boolean send(Message message) {
         try {
             synchronized (out) {
                 out.writeObject(message);
                 out.flush();
             }
+            return true;
         } catch (IOException e) {
             System.err.println("Failed to send message to server: " + e.getMessage());
+            close();
+            notifyDisconnected();
+            return false;
+        }
+    }
+
+    private void notifyDisconnected() {
+        if (disconnectNotified.compareAndSet(false, true)) {
+            Platform.runLater(disconnectListener);
         }
     }
 
@@ -147,7 +178,7 @@ public final class ServerConnection {
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            Platform.runLater(disconnectListener);
+            notifyDisconnected();
         }
     }
 }

@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import school.swe2040.restaurant.NetworkConfig;
@@ -14,7 +15,8 @@ import java.io.IOException;
 
 /**
  * Entry point for the kitchen display app. Connects to the server on
- * launch and shows the full-screen status board once connected.
+ * launch and shows the status board once connected. Starts windowed
+ * (press F11 to go full-screen for an actual kitchen-mounted display).
  */
 public final class KitchenApp extends Application {
 
@@ -34,10 +36,14 @@ public final class KitchenApp extends Application {
 
         Scene scene = new Scene(root, 1400, 850);
         scene.getStylesheets().add(getClass().getResource("/kitchen/kitchen.css").toExternalForm());
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            }
+        });
 
         stage.setTitle("Kitchen Display");
         stage.setScene(scene);
-        stage.setFullScreen(true);
         stage.setFullScreenExitHint("");
         stage.show();
 

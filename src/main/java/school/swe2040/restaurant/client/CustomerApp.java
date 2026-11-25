@@ -2,6 +2,7 @@ package school.swe2040.restaurant.client;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
@@ -13,8 +14,9 @@ import java.io.IOException;
 
 /**
  * Entry point for the customer tablet app. Shows the table-number setup
- * screen first, then connects to the server and switches to the full-screen
- * ordering screen for that table.
+ * screen first, then connects to the server and switches to the ordering
+ * screen for that table. Starts windowed (press F11 to simulate the
+ * permanently mounted, full-screen tablet the brief describes).
  */
 public final class CustomerApp extends Application {
 
@@ -33,10 +35,14 @@ public final class CustomerApp extends Application {
 
         Scene scene = new Scene(root, 1280, 800);
         scene.getStylesheets().add(getClass().getResource("/customer/customer.css").toExternalForm());
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            }
+        });
 
         stage.setTitle("Table Ordering");
         stage.setScene(scene);
-        stage.setFullScreen(true);
         stage.setFullScreenExitHint("");
         stage.show();
     }

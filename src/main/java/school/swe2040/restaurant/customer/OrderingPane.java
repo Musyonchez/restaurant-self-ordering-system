@@ -4,6 +4,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -224,8 +225,26 @@ public final class OrderingPane extends BorderPane {
     private void placeOrder() {
         Order order = new Order(UUID.randomUUID().toString(), tableNumber,
                 new ArrayList<>(cartItems), OrderStatus.PLACED, Instant.now());
-        connection.placeOrder(order);
-        cartItems.clear();
+        boolean sent = connection.placeOrder(order);
+        if (sent) {
+            cartItems.clear();
+        } else {
+            // Deliberately not clearing the cart: the order never reached
+            // the server, so losing it here would mean the customer thinks
+            // they ordered while the kitchen never heard about it at all.
+            showPlaceOrderError();
+        }
+    }
+
+    private void showPlaceOrderError() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Order Not Sent");
+        alert.setHeaderText("Could not send your order to the kitchen");
+        alert.setContentText("Your cart has been kept so nothing is lost. Check the connection and press "
+                + "Place Order again once it's restored.");
+        alert.getDialogPane().getStylesheets().add(
+                getClass().getResource("/customer/customer.css").toExternalForm());
+        alert.showAndWait();
     }
 
     private void onOrderStatusChanged(Order order) {

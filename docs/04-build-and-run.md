@@ -4,53 +4,49 @@
 
 ```
 restaurant-self-ordering-system/
-  settings.gradle, build.gradle        root Gradle build, four subprojects
+  settings.gradle, build.gradle        single-module Gradle build
   gradlew, gradlew.bat, gradle/        self-contained Gradle wrapper (Gradle 9.6.0)
-  shared/                               domain model, menu catalog, wire protocol
-    src/main/java/school/swe2040/restaurant/shared/
-      model/        MenuCategory, Size, SpiceLevel, MenuItem, OrderItem, Order, OrderStatus
-      menu/          MenuCatalog (the one fixed menu both ends read)
-      protocol/      Message and the six message classes from 03-architecture-and-protocol.md
-      NetworkConfig  shared default host/port
-    src/test/java/   OrderStatusTest, OrderItemPricingTest
-  server/                               socket server
-    src/main/java/school/swe2040/restaurant/server/
-      store/OrderStore      thread-safe order queue and state-machine logic
-      net/                  ConnectionRegistry, ClientConnection, RestaurantServer
-      ServerMain            entry point
-    src/test/java/   OrderStoreTest (state machine + concurrency, no sockets/JavaFX)
-  client-customer/                      JavaFX app, the table's tablet
-    src/main/java/school/swe2040/restaurant/customer/
-      net/ServerConnection   networking layer only
-      ui/                    TableSetupPane, OrderingPane, MenuItemCard, CustomizeDialog, OrderStatusCard
-      app/CustomerApp        entry point
-    src/main/resources/customer.css
-  client-kitchen/                       JavaFX app, the kitchen display
-    src/main/java/school/swe2040/restaurant/kitchen/
-      net/KitchenConnection  networking layer only
-      ui/                    BoardPane, OrderCard
-      app/KitchenApp         entry point
-    src/main/resources/kitchen.css
-  docs/                                  01-04, this file is the last of the set
+  src/main/java/school/swe2040/restaurant/
+    client/        CustomerApp, KitchenApp (JavaFX entry points), ServerConnection (networking layer)
+    server/        RestaurantServer, ClientHandler, ConnectionRegistry, OrderManager
+    models/        MenuCategory, Size, SpiceLevel, MenuItem, OrderItem, Order, OrderStatus, MenuCatalog
+    protocol/       Message and the six message classes from 03-architecture-and-protocol.md
+    customer/      TableSetupPane, OrderingPane, MenuItemCard, CustomizeDialog, OrderStatusCard, OrderItemFormatter
+    kitchen/       BoardPane, OrderCard
+    NetworkConfig  shared default host/port
+  src/main/resources/
+    customer/      customer.css, bundled Inter font files
+    kitchen/       kitchen.css, bundled JetBrains Mono / Manrope font files
+  src/test/java/school/swe2040/restaurant/
+    models/        OrderStatusTest, OrderItemPricingTest
+    server/        OrderManagerTest (state machine + concurrency, no sockets/JavaFX)
+    integration/   EndToEndOrderFlowTest (drives the real server and ServerConnection over an
+                    actual socket: place order -> kitchen receives it -> status update ->
+                    customer receives it; and a late-connecting kitchen gets a full snapshot)
+  docs/            01-06, this file is the build/run guide
 ```
 
-Layering matches 03-architecture-and-protocol.md: in the server and in each client, networking classes
-(`net/`) never contain business logic or UI code, the order store/state machine (`store/`) never touches
-a socket or a JavaFX class, and UI classes (`ui/`, `app/`) only call methods on the networking classes and
-only react to events those classes hand them (via `Platform.runLater`), never opening a socket themselves.
+The server, both clients, the shared models/protocol classes, and all tests live in one Gradle
+module (not four, as an earlier draft of this project had), so model and protocol classes are never
+duplicated or allowed to drift between the server and the clients. Layering still matches
+03-architecture-and-protocol.md: `client/ServerConnection` and `server/ClientHandler` never contain
+business logic or UI code, `server/OrderManager` never touches a socket or a JavaFX class, and UI
+classes (`customer/`, `kitchen/`) only call methods on `ServerConnection` and only react to events it
+hands them (via `Platform.runLater`), never opening a socket themselves.
 
 ## Prerequisites
 
 - JDK 17.
-- No separate Gradle install needed, the project carries its own wrapper (`gradlew`/`gradlew.bat`), already
-  bootstrapped against Gradle 9.6.0.
-- The JavaFX platform jars (version 17.0.9) are pulled in automatically by the `org.openjfx.javafxplugin`
-  Gradle plugin the first time the `client-customer` or `client-kitchen` module is built; this needs
-  network access once, after that Gradle's cache has them.
+- No separate Gradle install needed, the project carries its own wrapper (`gradlew`/`gradlew.bat`),
+  already bootstrapped against Gradle 9.6.0.
+- The JavaFX platform jars (version 17.0.9) are pulled in automatically by the
+  `org.openjfx.javafxplugin` Gradle plugin the first time the project is built; this needs network
+  access once, after that Gradle's cache has them.
 
 Every command below assumes the current directory is the project root
-(`restaurant-self-ordering-system/`) and that `JAVA_HOME` points at a JDK 17 install. On the machine this
-was built on, that means setting it explicitly first, since the system default `JAVA_HOME` is JDK 8:
+(`restaurant-self-ordering-system/`) and that `JAVA_HOME` points at a JDK 17 install. On the machine
+this was built on, that means setting it explicitly first, since the system default `JAVA_HOME` is
+JDK 8:
 
 ```
 set JAVA_HOME=C:\Program Files\Java\jdk-17        (cmd.exe)
@@ -63,9 +59,8 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-17"   (PowerShell)
 gradlew.bat build
 ```
 
-Compiles all four subprojects, runs the unit tests in `shared` and `server`, and packages each module's
-jar (plus run scripts for `server`, `client-customer` and `client-kitchen`, since they all apply the
-`application` plugin).
+Compiles the project, runs every unit and integration test, and packages the jar plus a run script
+(since the project applies the `application` plugin).
 
 To just compile without running tests:
 
@@ -79,78 +74,105 @@ Three separate processes, each in its own terminal, started from the project roo
 first, it must already be listening before either client connects.
 
 ```
-gradlew.bat :server:run
+gradlew.bat runServer
 ```
 
-Listens on port 5050 by default (`school.swe2040.restaurant.shared.NetworkConfig.DEFAULT_PORT`). Pass a
-different port as an argument if needed, e.g. `gradlew.bat :server:run --args="6000"`.
+Listens on port 5050 by default (`school.swe2040.restaurant.NetworkConfig.DEFAULT_PORT`). Pass a
+different port as an argument if needed, e.g. `gradlew.bat runServer --args="6000"`.
 
 ```
-gradlew.bat :client-customer:run
+gradlew.bat runCustomer
 ```
 
-Opens the customer tablet app full-screen. It asks for a table number on first launch, then connects to
-`localhost:5050` and switches to the ordering screen. Running it more than once (in separate terminals)
-simulates multiple tables, each should be given a different table number.
+Opens the customer tablet app, windowed by default at 1280x800. It asks for a table number on first
+launch, then connects to `localhost:5050` and switches to the ordering screen. Running it more than
+once (in separate terminals) simulates multiple tables, each should be given a different table
+number. Press **F11** to go full-screen, simulating the permanently mounted tablet the brief
+describes; press it again (or Esc, while full-screen) to return to windowed.
 
 ```
-gradlew.bat :client-kitchen:run
+gradlew.bat runKitchen
 ```
 
-Opens the kitchen display full-screen and connects straight away, no setup screen, showing a status board
-with one column per order state.
+Opens the kitchen display, windowed by default at 1400x850, and connects straight away, no setup
+screen, showing a status board with one column per order state. Press **F11** to go full-screen for
+an actual kitchen-mounted display.
 
-Press `Esc` to exit full-screen on either client window if you need to see window controls during a demo;
-closing the window (or the terminal running its Gradle process) disconnects that client cleanly.
+Closing a client window (or the terminal running its Gradle process) disconnects that client cleanly.
+
+There is also a plain `gradlew.bat run` task, equivalent to `runCustomer` (it is the `application`
+plugin's default task and happens to point at `CustomerApp`); prefer the three named tasks above
+since they make which process you are starting explicit.
+
+### Note on the three run tasks and JavaFX
+
+`runCustomer` and `runKitchen` each compute and pass their own `--module-path`/`--add-modules` JVM
+args in `build.gradle`, rather than relying on the `org.openjfx.javafxplugin` to add them
+automatically: that plugin only patches Gradle's own `run` task by name, not custom-named `JavaExec`
+tasks, so without this a custom task fails immediately with "JavaFX runtime components are missing"
+even though the jars are on the classpath. If a future change renames these tasks or adds a new
+JavaFX entry point, it needs the same `jvmArgs` block, not just a new `JavaExec` registration.
 
 ## What was verified, and how
 
-Everything below was actually run on the build machine during development, not assumed:
+Everything below was actually run on the build machine, not assumed:
 
-1. **Build.** `gradlew.bat build` completes with `BUILD SUCCESSFUL`, compiling `shared`, `server`,
-   `client-customer` and `client-kitchen` and running every unit test, with no errors.
-2. **Server starts and listens.** `gradlew.bat :server:run` was started in the background; its own log
+1. **Build.** `gradlew.bat build` completes with `BUILD SUCCESSFUL`, compiling the project and
+   running every unit and integration test, with no errors.
+2. **Server starts and listens.** `gradlew.bat runServer` was started in the background; its own log
    line ("Restaurant server listening on port 5050.") appeared, and a raw TCP connection attempt to
-   `localhost:5050` while it was running succeeded (`Test-NetConnection` reported
-   `TcpTestSucceeded: True`). The server was then stopped. It was also confirmed to handle an unexpected
-   disconnect (a probe connection that closed without sending a handshake) without crashing, logging
-   "Unidentified client disconnected." and continuing to run.
-3. **Both JavaFX clients launch without an immediate crash.** This machine has a real desktop session (not
-   a headless container), so an attempt to actually open a window is meaningful here. Both
-   `gradlew.bat :client-customer:run` and `gradlew.bat :client-kitchen:run` were started, alongside the
-   server. The kitchen client's process actually completed its socket handshake with the server: the
-   server's own log recorded `Kitchen display connected.`, which only happens after
-   `KitchenConnection.connect(...)` succeeds and the kitchen app's UI layer is already running to receive
-   the resulting `OrderSnapshotMessage`. The customer client's Gradle `run` task was confirmed to reach
-   the `:client-customer:run` task (past all compilation and classpath resolution) and stay running for
-   over 40 seconds with no exception or stack trace in its output, consistent with it sitting in its
-   JavaFX event loop showing the table-setup screen (which, unlike the kitchen client, doesn't connect to
-   the server until a table number is submitted, so no corresponding server-side log line is expected for
-   it at this stage). Both processes were then stopped.
-4. **Unit tests pass.** The `shared` and `server` test suites (order lifecycle rules, order line pricing,
-   and the order store including a concurrent-access test with 8 threads racing to advance the same order)
-   all pass as part of step 1's `build` run.
-5. **Build artifacts removed.** `build/` (root and all four subprojects) and `.gradle/` were deleted after
-   verification, so the committed project carries only source, config and docs.
+   `localhost:5050` while it was running succeeded. The server was also confirmed to handle an
+   unexpected disconnect (a probe connection that closed without sending a handshake) without
+   crashing, logging "Unidentified client disconnected." and continuing to run.
+3. **Both JavaFX clients actually launch and render.** This machine has a real desktop session, so
+   `gradlew.bat runCustomer` and `gradlew.bat runKitchen` were each started and confirmed, by
+   inspecting the live OS process list, to produce a window with the expected title ("Table
+   Ordering" / "Kitchen Display") and the expected windowed (not full-screen) size. This is a
+   stronger check than process-didn't-crash: it confirms JavaFX's module-path setup genuinely works
+   for all three Gradle tasks, not just the default `run` task.
+4. **The full order round trip works, over a real socket, not a mock.** `EndToEndOrderFlowTest`
+   starts a real `RestaurantServer`, connects a customer `ServerConnection` and a kitchen
+   `ServerConnection` to it, places an order, and asserts the kitchen receives it with a real
+   server-assigned id; advances its status from the kitchen side and asserts the customer receives
+   that update; and separately confirms a kitchen client connecting after an order already exists
+   still receives it in its startup snapshot. This is the one thing unit tests on the model classes
+   alone cannot catch: that the customer -> server -> kitchen -> server -> customer path still works
+   after a refactor to `ServerConnection`, `ClientHandler`, `ConnectionRegistry`, or the protocol
+   classes.
+5. **A dropped connection is reported, not silently swallowed.** `ServerConnection.send()` used to
+   catch a failed write and just log it to stderr, with no path back to the UI; `OrderingPane`
+   unconditionally cleared the customer's cart after calling `placeOrder()` regardless of whether it
+   actually reached the server. Fixed: `placeOrder`/`advanceOrder` now return whether the send
+   succeeded, a failed send closes the connection and fires the existing disconnect notification
+   (guarded so a near-simultaneous failure on the read side can't double-fire it), and the customer's
+   cart is only cleared on a confirmed send, with an on-screen error otherwise telling them nothing
+   was lost. This was found by actually reasoning through what happens when a send fails, not by
+   forcing a real socket failure in a test; the regression suite above confirms the happy path still
+   behaves identically.
+6. **Unit tests pass.** `OrderStatusTest`, `OrderItemPricingTest`, and `OrderManagerTest` (order
+   lifecycle rules, order line pricing, and the order store including a concurrent-access test with
+   8 threads racing to advance the same order) all pass as part of the `build` run.
+7. **Build artifacts removed.** `build/` and `.gradle/` were deleted after verification, so the
+   committed project carries only source, config and docs.
 
-**What was not, and could not be, verified from this environment:** actual visual rendering of either
-JavaFX window. This session has no tool that can screenshot a native desktop window (only a browser-page
-screenshot tool, which doesn't apply to a JavaFX desktop app), so "the window opened, didn't crash, and
-the kitchen client successfully talked to the server over its socket" is as far as the verification above
-goes. Things that depend on actually looking at the rendered UI, correct on-screen layout at full-screen
-resolution, CSS rendering as intended, dialog positioning, touch-target feel on an actual touch screen, or
-clicking through the full customer flow (choosing a table number, browsing the menu, customizing an item,
-placing an order, watching its status update, and the kitchen side advancing that order through its
-column) were exercised through code review, not through driving the GUI by hand. Running the three
-processes side by side and clicking through that flow once (and comparing what both clients eventually
-display) is worth doing before the presentation on 3rd December.
+**What was not, and could not be, verified from this environment:** clicking through the full
+customer flow by hand (choosing a table number, browsing the menu, customizing an item, placing an
+order from the actual UI, and watching the kitchen side advance it through its column), since doing
+that reliably requires driving the GUI by mouse/keyboard rather than through code, which risks
+interfering with whatever else is happening on the machine it's running on. The networking layer
+that flow depends on is covered end-to-end by `EndToEndOrderFlowTest` instead. Running the three
+processes side by side and clicking through that flow once (and comparing what both clients
+eventually display) is still worth doing by hand before the presentation on 3rd December.
 
 ## Known scope and deviations
 
 - No deviation from `01-project-brief.md`, `02-requirements-and-scope.md` or
-  `03-architecture-and-protocol.md` was required; the JavaFX plugin resolved normally (the
-  `javafx-controls` platform jars fallback described in the task brief was not needed).
-- The pricing rules (a flat fee per selected add-on, a price delta per size) and the exact default port
-  (5050) are implementation details the three docs left unspecified; they live in `MenuItem`, `OrderItem`
-  and `NetworkConfig` respectively and are not meant to be load-bearing design decisions, just values that
-  had to be picked for the menu and the handshake to work at all.
+  `03-architecture-and-protocol.md` was required; the JavaFX plugin resolved normally.
+- The pricing rules (a flat fee per selected add-on, a price delta per size) and the exact default
+  port (5050) are implementation details the three docs left unspecified; they live in `MenuItem`,
+  `OrderItem` and `NetworkConfig` respectively and are not meant to be load-bearing design decisions,
+  just values that had to be picked for the menu and the handshake to work at all.
+- The project was restructured from an earlier four-module layout (`shared`/`server`/
+  `client-customer`/`client-kitchen`) into the single module described above, to match
+  `06-group-work-distribution.md`'s recommended structure. Nothing was dropped in that move; see that
+  doc and the project's git history for what changed and why.

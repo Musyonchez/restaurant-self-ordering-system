@@ -2,14 +2,16 @@
 
 ## Modules
 
-The project is a single Gradle build with four subprojects:
+The project is a single Gradle module (see `06-group-work-distribution.md` for why it is organized
+this way rather than as separate subprojects), split into packages along the same lines four
+subprojects would have been:
 
-- **`shared`**: the domain model both ends must agree on (`MenuItem`, `OrderItem`, `Order`, `OrderStatus`), the fixed menu catalog, and the message classes sent over the wire. Putting the menu here means the customer client and the server read the exact same item names, prices and customization options instead of two copies that could drift apart.
+- **`models` and `protocol`**: the domain model both ends must agree on (`MenuItem`, `OrderItem`, `Order`, `OrderStatus`), the fixed menu catalog, and the message classes sent over the wire. Putting the menu here means the customer client and the server read the exact same item names, prices and customization options instead of two copies that could drift apart.
 - **`server`**: accepts socket connections from both kinds of client, holds the live order queue, and broadcasts events when orders are created or change status.
-- **`client-customer`**: the JavaFX app that runs full-screen on a table's tablet, for browsing the menu, customizing items, placing an order, and watching that order's status update live.
-- **`client-kitchen`**: the JavaFX app for the kitchen, showing every order on a board grouped by status, with a button per order to advance it to the next status.
+- **`client` + `customer`**: `client.CustomerApp` is the JavaFX entry point for a table's tablet (windowed by default, full-screen on request, see `04-build-and-run.md`), for browsing the menu, customizing items, placing an order, and watching that order's status update live; the `customer` package holds its screens.
+- **`client` + `kitchen`**: `client.KitchenApp` is the JavaFX entry point for the kitchen, showing every order on a board grouped by status, with a button per order to advance it to the next status; the `kitchen` package holds its screens.
 
-> **Diagram:** a box labeled "shared" at the top, with arrows pointing down into three boxes below it labeled "server", "client-customer", and "client-kitchen" (all three depend on shared). A separate pair of arrows connects "client-customer" and "client-kitchen" to "server" directly, labeled "TCP socket", showing the clients only ever talk to the server, never to each other.
+> **Diagram:** a box labeled "models/protocol" at the top, with arrows pointing down into three boxes below it labeled "server", "client.CustomerApp + customer", and "client.KitchenApp + kitchen" (all three depend on models/protocol). A separate pair of arrows connects the two client boxes to "server" directly, labeled "TCP socket", showing the clients only ever talk to the server, never to each other.
 
 ## Why plain sockets and Java serialization
 

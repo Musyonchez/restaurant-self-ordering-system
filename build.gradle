@@ -36,11 +36,23 @@ application {
     mainClass = 'school.swe2040.restaurant.client.CustomerApp'
 }
 
+// The javafx-gradle-plugin only patches the 'run' task (and 'test') that
+// the application plugin creates with the --module-path/--add-modules JVM
+// args JavaFX needs; it hardcodes that task name internally and never
+// touches custom-named JavaExec tasks. Without these args, runCustomer/
+// runKitchen fail at startup with "JavaFX runtime components are missing",
+// even though the jars are already on the classpath. So the two JavaFX
+// entry points below compute and pass the same args themselves.
+def javafxModulePath = {
+    -> sourceSets.main.runtimeClasspath.filter { File f -> f.name.startsWith('javafx-') }.asPath
+}
+
 tasks.register('runCustomer', JavaExec) {
     group = 'application'
     description = 'Runs the customer tablet app.'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'school.swe2040.restaurant.client.CustomerApp'
+    doFirst { jvmArgs = ['--module-path', javafxModulePath(), '--add-modules', 'javafx.controls'] }
 }
 
 tasks.register('runKitchen', JavaExec) {
@@ -48,6 +60,7 @@ tasks.register('runKitchen', JavaExec) {
     description = 'Runs the kitchen display app.'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'school.swe2040.restaurant.client.KitchenApp'
+    doFirst { jvmArgs = ['--module-path', javafxModulePath(), '--add-modules', 'javafx.controls'] }
 }
 
 tasks.register('runServer', JavaExec) {
